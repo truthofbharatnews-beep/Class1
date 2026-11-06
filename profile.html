@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FriendZone - Profile</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090909;color:white;font-family:Arial;padding-bottom:80px}
+header{background:#111;padding:16px;border-bottom:1px solid #795b2b}
+.logo{color:#e8c36e;font-size:23px;font-weight:bold;text-shadow:0 0 12px #bd913e}
+main{max-width:600px;margin:auto;padding:18px}
+.card,.post{background:#151515;border:1px solid #493a20;border-radius:14px;padding:20px;margin-bottom:16px}
+.profile{text-align:center}
+.avatar{width:115px;height:115px;border-radius:50%;object-fit:cover;border:3px solid #d3a74e;box-shadow:0 0 20px #bd913e55}
+h2,h3{color:#e6bd62}
+.bio{color:#bbb;line-height:1.5}
+.stats{display:flex;justify-content:space-around;margin:20px 0}
+.stats b{display:block;font-size:20px;color:#e6bd62}
+.stats small{color:#999}
+input,textarea{width:100%;padding:12px;background:#090909;border:1px solid #51432c;border-radius:8px;color:white;margin:8px 0;font:inherit}
+textarea{min-height:75px}
+button{cursor:pointer;border-radius:8px;padding:12px 16px;font-weight:bold}
+.gold{background:linear-gradient(100deg,#a87926,#f4d58c,#b78a37);border:0;color:#17100a}
+.ghost{background:#222;border:1px solid #80602b;color:#e6bd62}
+.post{padding:15px;overflow-wrap:anywhere}
+.muted{color:#999;font-size:12px}
+.media{width:100%;max-height:400px;object-fit:contain;margin-top:10px}
+nav{position:fixed;bottom:0;left:0;width:100%;background:#111;border-top:1px solid #795b2b;display:flex;justify-content:space-around;padding:12px 3px}
+nav a{color:#bbb;text-decoration:none;text-align:center;font-size:11px}
+nav span{display:block;font-size:20px;margin-bottom:3px}
+nav .active{color:#e6bd62}
+#status{color:#e6bd62;font-size:13px}
+</style>
+</head>
+<body>
+<header><div class="logo">✦ FRIENDZONE</div></header>
+
+<main>
+ <section class="card profile">
+  <img id="avatar" class="avatar" src="https://placehold.co/150/292019/e6bd62?text=F">
+  <h2 id="displayName">Loading profile...</h2>
+  <p class="muted" id="email"></p>
+  <p class="bio" id="bioText"></p>
+
+  <div class="stats">
+   <div><b id="postCount">0</b><small>Posts</small></div>
+   <div><b>Public</b><small>Feed</small></div>
+  </div>
+
+  <button class="gold" id="editBtn">Edit Profile</button>
+ </section>
+
+ <section class="card" id="editPanel" hidden>
+  <h3>Edit your profile</h3>
+  <label>Profile picture</label>
+  <input type="file" id="photoFile" accept="image/*">
+  <label>Name</label>
+  <input id="nameInput" maxlength="40" placeholder="Your name">
+  <label>Bio</label>
+  <textarea id="bioInput" maxlength="200" placeholder="Tell people about yourself..."></textarea>
+  <button class="gold" id="saveBtn">Save Changes</button>
+  <button class="ghost" id="cancelBtn">Cancel</button>
+  <p id="status"></p>
+ </section>
+
+ <h3>My Posts ✨</h3>
+ <div id="myPosts">Loading your posts...</div>
+</main>
+
+<nav>
+ <a href="home.html"><span>⌂</span>Home</a>
+ <a href="home.html#stories"><span>◉</span>Stories</a>
+ <a href="home.html#feed"><span>＋</span>Posts</a>
+ <a href="home.html" onclick="sessionStorage.setItem('openChats','1')"><span>✉</span>Chats</a>
+ <a href="profile.html" class="active"><span>♙</span>Profile</a>
+</nav>
+
+<script type="module">
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+import {
+ getAuth,onAuthStateChanged,updateProfile,signOut
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import {
+ getFirestore,doc,getDoc,setDoc,collection,query,
+ where,getDocs,serverTimestamp
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import {
+ getStorage,ref,uploadBytes,getDownloadURL
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-storage.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyDjAZ_4eHN21jtWyq3mYv43uhw7yaGIuA0",
+ authDomain:"class-f0376.firebaseapp.com",
+ projectId:"class-f0376",
+ storageBucket:"class-f0376.firebasestorage.app",
+ messagingSenderId:"861064597115",
+ appId:"1:861064597115:web:11eed88d44a05ea76c1cde",
+ measurementId:"G-S46KERZ8Q5"
+};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app),db=getFirestore(app),storage=getStorage(app);
+const $=id=>document.getElementById(id);
+let me=null,currentPhoto="";
+
+const fallback="https://placehold.co/150/292019/e6bd62?text=F";
+
+onAuthStateChanged(auth,async user=>{
+ if(!user){location.replace("index.html");return}
+ me=user;
+ await loadProfile();
+ await loadPosts();
+});
+
+async function loadProfile(){
+ const snap=await getDoc(doc(db,"users",me.uid));
+ const u=snap.exists()?snap.data():{};
+ currentPhoto=u.photo||me.photoURL||"";
+ $("avatar").src=currentPhoto||fallback;
+ $("displayName").textContent=u.name||me.displayName||"FriendZone User";
+ $("email").textContent=me.email||"";
+ $("bioText").textContent=u.bio||"No bio added yet.";
+ $("nameInput").value=u.name||me.displayName||"";
+ $("bioInput").value=u.bio||"";
+}
+
+$("editBtn").onclick=()=>{
+ $("editPanel").hidden=!$("editPanel").hidden;
+};
+
+$("cancelBtn").onclick=()=>{$("editPanel").hidden=true};
+
+$("saveBtn").onclick=async()=>{
+ const name=$("nameInput").value.trim();
+ const bio=$("bioInput").value.trim();
+ const file=$("photoFile").files[0];
+ if(!name)return $("status").textContent="Please enter your name.";
+ try{
+  $("saveBtn").disabled=true;
+  $("status").textContent="Saving...";
+  let photo=currentPhoto;
+
+  if(file){
+   if(file.size>5*1024*1024)throw Error("Image must be under 5 MB.");
+   if(!file.type.startsWith("image/"))throw Error("Choose an image.");
+   const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+   const r=ref(storage,"profilePhotos/"+me.uid+"/"+Date.now()+"_"+safeName);
+   await uploadBytes(r,file);
+   photo=await getDownloadURL(r);
+  }
+
+  await updateProfile(me,{displayName:name,photoURL:photo||null});
+  await setDoc(doc(db,"users",me.uid),{
+   uid:me.uid,name,email:me.email||"",bio,photo,
+   updatedAt:serverTimestamp()
+  },{merge:true});
+
+  currentPhoto=photo;
+  await loadProfile();
+  $("editPanel").hidden=true;
+  $("status").textContent="Profile updated!";
+ }catch(e){$("status").textContent=e.message}
+ finally{$("saveBtn").disabled=false}
+};
+
+// LOAD OWN POSTS
+async function loadPosts(){
+ try{
+  const q=query(collection(db,"posts"),where("authorId","==",me.uid));
+  const snap=await getDocs(q);
+  const items=snap.docs.map(d=>({id:d.id,...d.data()}));
+  items.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+
+  $("postCount").textContent=items.length;
+  const box=$("myPosts");box.replaceChildren();
+
+  if(!items.length){box.textContent="You haven't published any posts yet.";return}
+
+  items.forEach(p=>{
+   const card=document.createElement("article");
+   card.className="post";
+
+   const name=document.createElement("b");
+   name.textContent=p.authorName||"You";
+
+   const time=document.createElement("div");
+   time.className="muted";
+   time.textContent=p.createdAt?.toDate?.().toLocaleString()||"Just now";
+
+   const text=document.createElement("p");
+   text.textContent=p.text||"";
+
+   card.append(name,time,text);
+
+   if(p.mediaUrl){
+    const media=p.mediaType==="video"?
+     document.createElement("video"):document.createElement("img");
+    media.src=p.mediaUrl;
+    media.className="media";
+    if(p.mediaType==="video")media.controls=true;
+    card.appendChild(media);
+   }
+   box.appendChild(card);
+  });
+ }catch(e){$("myPosts").textContent=e.message}
+}
+</script>
+</body>
+</html>
