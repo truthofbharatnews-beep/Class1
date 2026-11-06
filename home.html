@@ -1,0 +1,379 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FriendZone - Home</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090909;color:white;font-family:Arial;padding-bottom:80px}
+header{position:sticky;top:0;background:#111;z-index:5;padding:15px;border-bottom:1px solid #795b2b;display:flex;justify-content:space-between;align-items:center}
+.logo{color:#e8c36e;font-weight:bold;font-size:22px;text-shadow:0 0 12px #b98b3c}
+button{cursor:pointer}
+.gold{background:linear-gradient(100deg,#a87926,#f4d58c,#b78a37);color:#17100a;border:0;border-radius:8px;padding:11px 16px;font-weight:bold}
+.ghost{background:#222;color:#e6bd62;border:1px solid #70552b;border-radius:8px;padding:9px}
+main{max-width:650px;margin:auto;padding:15px}
+h3{color:#e6bd62;margin:22px 0 12px}
+.box,.post{background:#151515;border:1px solid #42351f;border-radius:13px;padding:15px;margin-bottom:15px}
+input,textarea{width:100%;padding:12px;background:#0b0b0b;color:white;border:1px solid #51432c;border-radius:8px;margin:7px 0;font:inherit}
+textarea{min-height:75px;resize:vertical}
+.row{display:flex;gap:8px;align-items:center}
+.row input{min-width:0;flex:1}
+.stories{display:flex;gap:13px;overflow-x:auto;padding:5px 0 15px}
+.story{min-width:68px;text-align:center;color:#ccc;font-size:11px}
+.ring{width:62px;height:62px;border-radius:50%;padding:3px;background:linear-gradient(135deg,#f4d58c,#a87926);margin:auto auto 5px}
+.ring img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:2px solid #111}
+.posthead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid #c69a4a}
+.muted{font-size:12px;color:#999;margin-top:4px}
+.posttext{line-height:1.5;overflow-wrap:anywhere;margin:12px 0}
+.media{width:100%;max-height:450px;object-fit:contain;border-radius:9px;background:#080808}
+.actions{display:flex;gap:18px;border-top:1px solid #393126;margin-top:12px;padding-top:12px;flex-wrap:wrap}
+.actions button{background:none;border:0;color:#ccc}
+.actions .liked{color:#e6bd62}
+.comment{padding:9px;background:#222;border-radius:7px;margin-top:7px;font-size:13px;overflow-wrap:anywhere}
+.hidden{display:none!important}
+nav{position:fixed;bottom:0;left:0;width:100%;background:#111;border-top:1px solid #795b2b;display:flex;justify-content:space-around;padding:12px 3px;z-index:10}
+nav a{color:#bbb;text-decoration:none;text-align:center;font-size:11px}
+nav span{display:block;font-size:20px;margin-bottom:3px}
+nav .active{color:#e6bd62}
+#status{color:#e6bd62;font-size:13px}
+#chatPanel{position:fixed;inset:0;background:#090909;z-index:30;display:flex;flex-direction:column;padding:15px}
+#chatMessages{flex:1;overflow:auto;padding:10px}
+.bubble{background:#252019;padding:10px;border-radius:10px;margin:7px 0;max-width:85%;overflow-wrap:anywhere}
+.mine{margin-left:auto;background:#725323}
+.smallbtn{background:#27221a;border:1px solid #80602b;color:#e6bd62;padding:7px;border-radius:7px}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="logo">✦ FRIENDZONE</div>
+ <button class="ghost" id="logout">Logout</button>
+</header>
+
+<main>
+ <h3>Stories ✨</h3>
+ <div class="stories" id="stories">
+  <div class="story">
+   <div class="ring"><img src="https://placehold.co/100/292019/e6bd62?text=+"></div>
+   My Story
+  </div>
+ </div>
+
+ <div class="box">
+  <h3 style="margin-top:0">Share a Story</h3>
+  <input type="file" id="storyFile" accept="image/*,video/*">
+  <button class="gold" id="storyBtn">Upload Story</button>
+  <p class="muted">Stories are available for 24 hours.</p>
+ </div>
+
+ <h3>Create a Post</h3>
+ <div class="box">
+  <textarea id="postText" placeholder="What's happening in your world?"></textarea>
+  <input type="file" id="postFile" accept="image/*,video/*">
+  <button class="gold" id="publish">Publish Post</button>
+  <p id="status"></p>
+ </div>
+
+ <h3>Discover Everyone 🌍</h3>
+ <div id="feed">Loading posts...</div>
+
+ <h3>Find People</h3>
+ <div class="box">
+  <input id="searchEmail" type="email" placeholder="Search by exact email address">
+  <button class="gold" id="searchBtn">Search Users</button>
+  <div id="searchResults"></div>
+ </div>
+</main>
+
+<div id="chatPanel" class="hidden">
+ <div class="row">
+  <button class="ghost" id="closeChat">← Back</button>
+  <strong id="chatTitle" style="color:#e6bd62">Messages</strong>
+ </div>
+ <div id="chatMessages"></div>
+ <form class="row" id="chatForm">
+  <input id="chatInput" placeholder="Write a message..." maxlength="2000" required>
+  <button class="gold">Send</button>
+ </form>
+</div>
+
+<nav>
+ <a class="active" href="home.html"><span>⌂</span>Home</a>
+ <a href="#stories"><span>◉</span>Stories</a>
+ <a href="#feed"><span>＋</span>Posts</a>
+ <a href="#" id="openChats"><span>✉</span>Chats</a>
+ <a href="profile.html"><span>♙</span>Profile</a>
+</nav>
+
+<script type="module">
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+import {
+ getAuth,onAuthStateChanged,signOut
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+import {
+ getFirestore,collection,addDoc,doc,setDoc,deleteDoc,
+ onSnapshot,query,orderBy,serverTimestamp,getDocs,
+ where,limit
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+import {
+ getStorage,ref,uploadBytes,getDownloadURL
+} from "https://www.gstatic.com/firebasejs/13.2.0/firebase-storage.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyDjAZ_4eHN21jtWyq3mYv43uhw7yaGIuA0",
+ authDomain:"class-f0376.firebaseapp.com",
+ projectId:"class-f0376",
+ storageBucket:"class-f0376.firebasestorage.app",
+ messagingSenderId:"861064597115",
+ appId:"1:861064597115:web:11eed88d44a05ea76c1cde",
+ measurementId:"G-S46KERZ8Q5"
+};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app),db=getFirestore(app),storage=getStorage(app);
+const $=id=>document.getElementById(id);
+let me=null,stopPosts=null,stopStories=null,stopMessages=null,activeChat=null;
+
+function safe(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function say(t){$("status").textContent=t}
+function avatar(u){return u||"https://placehold.co/100x100/292019/e6bd62?text=F"}
+
+onAuthStateChanged(auth,user=>{
+ if(!user){location.replace("index.html");return}
+ me=user;
+ loadPosts();
+ loadStories();
+});
+
+$("logout").onclick=async()=>{await signOut(auth);location.replace("index.html")};
+
+async function upload(file,path){
+ if(!file)return {url:"",type:""};
+ if(file.size>50*1024*1024)throw Error("File must be under 50 MB.");
+ if(!/^(image|video)\//.test(file.type))throw Error("Choose an image or video.");
+ const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+ const r=ref(storage,path+"/"+Date.now()+"_"+safeName);
+ await uploadBytes(r,file);
+ return {url:await getDownloadURL(r),type:file.type.startsWith("video/")?"video":"image"};
+}
+
+// CREATE POST
+$("publish").onclick=async()=>{
+ const text=$("postText").value.trim(),file=$("postFile").files[0];
+ if(!text&&!file)return say("Write something or choose media.");
+ try{
+  $("publish").disabled=true;say("Uploading...");
+  const media=await upload(file,"postMedia/"+me.uid);
+  await addDoc(collection(db,"posts"),{
+   authorId:me.uid,authorName:me.displayName||"Friend",
+   authorPhoto:me.photoURL||"",text,
+   mediaUrl:media.url,mediaType:media.type,
+   createdAt:serverTimestamp()
+  });
+  $("postText").value="";$("postFile").value="";
+  say("Post published! ✨");
+ }catch(e){say(e.message)}
+ finally{$("publish").disabled=false}
+};
+
+// PUBLIC FEED
+function loadPosts(){
+ const q=query(collection(db,"posts"),orderBy("createdAt","desc"),limit(50));
+ stopPosts=onSnapshot(q,snap=>{
+  $("feed").replaceChildren();
+  if(snap.empty){$("feed").textContent="No posts yet. Be the first!";return}
+  snap.forEach(d=>renderPost(d.id,d.data()));
+ },e=>{$("feed").textContent=e.message});
+}
+
+function renderPost(id,p){
+ const card=document.createElement("article");
+ card.className="post";
+ const media=p.mediaUrl?
+ (p.mediaType==="video"
+  ?`<video class="media" controls src="${safe(p.mediaUrl)}"></video>`
+  :`<img class="media" src="${safe(p.mediaUrl)}" alt="Post">`):"";
+
+ card.innerHTML=`
+ <div class="posthead">
+  <img class="avatar" src="${safe(avatar(p.authorPhoto))}">
+  <div><b>${safe(p.authorName||"Friend")}</b>
+  <div class="muted">${p.createdAt?.toDate?.().toLocaleString()||"Just now"}</div></div>
+ </div>
+ <div class="posttext">${safe(p.text)}</div>${media}
+ <div class="actions">
+  <button class="like">♡ Like</button>
+  <button class="focusComment">💬 Comment</button>
+  <button class="share">↗ Share</button>
+ </div>
+ <div class="commentList"></div>
+ <form class="row commentForm">
+  <input placeholder="Write a comment..." maxlength="500" required>
+  <button class="smallbtn">Send</button>
+ </form>`;
+
+ $("feed").appendChild(card);
+ const likes=collection(db,"posts",id,"likes");
+ const myLike=doc(db,"posts",id,"likes",me.uid);
+ const likeBtn=card.querySelector(".like");
+
+ onSnapshot(likes,s=>{
+  const liked=s.docs.some(d=>d.id===me.uid);
+  likeBtn.textContent=(liked?"♥":"♡")+" Like ("+s.size+")";
+  likeBtn.classList.toggle("liked",liked);
+ });
+
+ likeBtn.onclick=async()=>{
+  const exists=(await getDocs(likes)).docs.some(d=>d.id===me.uid);
+  if(exists)await deleteDoc(myLike);
+  else await setDoc(myLike,{userId:me.uid,createdAt:serverTimestamp()});
+ };
+
+ const commentRef=collection(db,"posts",id,"comments");
+ onSnapshot(query(commentRef,orderBy("createdAt","asc")),s=>{
+  const list=card.querySelector(".commentList");
+  list.replaceChildren();
+  s.forEach(d=>{
+   const el=document.createElement("div");el.className="comment";
+   const strong=document.createElement("b");
+   strong.textContent=(d.data().authorName||"Friend")+": ";
+   el.append(strong,document.createTextNode(d.data().text||""));
+   list.appendChild(el);
+  });
+ });
+
+ card.querySelector(".commentForm").onsubmit=async e=>{
+  e.preventDefault();
+  const input=e.currentTarget.querySelector("input");
+  if(!input.value.trim())return;
+  await addDoc(commentRef,{
+   authorId:me.uid,authorName:me.displayName||"Friend",
+   text:input.value.trim(),createdAt:serverTimestamp()
+  });
+  input.value="";
+ };
+ card.querySelector(".focusComment").onclick=()=>card.querySelector(".commentForm input").focus();
+ card.querySelector(".share").onclick=async()=>{
+  const link=location.origin+location.pathname+"#post-"+id;
+  try{
+   if(navigator.share)await navigator.share({title:"FriendZone",url:link});
+   else{await navigator.clipboard.writeText(link);alert("Link copied!")}
+  }catch(e){}
+ };
+}
+
+// STORIES
+$("storyBtn").onclick=async()=>{
+ const file=$("storyFile").files[0];
+ if(!file)return alert("Choose a photo or video.");
+ try{
+  const media=await upload(file,"stories/"+me.uid);
+  const expires=new Date(Date.now()+24*60*60*1000);
+  await addDoc(collection(db,"stories"),{
+   authorId:me.uid,authorName:me.displayName||"Friend",
+   mediaUrl:media.url,mediaType:media.type,
+   createdAt:serverTimestamp(),
+   expiresAt:expires
+  });
+  $("storyFile").value="";
+  alert("Story uploaded!");
+ }catch(e){alert(e.message)}
+};
+
+function loadStories(){
+ stopStories=onSnapshot(query(collection(db,"stories"),orderBy("createdAt","desc"),limit(60)),s=>{
+  const box=$("stories");box.replaceChildren();
+  const add=document.createElement("div");
+  add.className="story";
+  add.innerHTML='<div class="ring"><img src="https://placehold.co/100/292019/e6bd62?text=+"></div>My Story';
+  box.appendChild(add);
+  s.forEach(d=>{
+   const x=d.data();
+   if(x.expiresAt?.toDate?.()<new Date())return;
+   const el=document.createElement("div");el.className="story";
+   const ring=document.createElement("div");ring.className="ring";
+   const img=document.createElement("img");img.src=avatar("");
+   ring.appendChild(img);
+   el.append(ring,document.createTextNode(x.authorName||"Friend"));
+   el.onclick=()=>{
+    const viewer=document.createElement("div");
+    viewer.style="position:fixed;inset:0;background:#000e;z-index:50;display:grid;place-items:center;padding:20px";
+    const media=x.mediaType==="video"?document.createElement("video"):document.createElement("img");
+    media.src=x.mediaUrl;media.style="max-width:100%;max-height:80vh";
+    if(x.mediaType==="video")media.controls=true;
+    const close=document.createElement("button");close.textContent="Close";close.className="gold";
+    close.onclick=()=>viewer.remove();
+    viewer.append(media,close);document.body.appendChild(viewer);
+   };
+   box.appendChild(el);
+  });
+ },e=>console.log(e.message));
+}
+
+// SEARCH USERS BY EXACT EMAIL
+$("searchBtn").onclick=async()=>{
+ const email=$("searchEmail").value.trim().toLowerCase();
+ if(!email)return;
+ const result=$("searchResults");result.textContent="Searching...";
+ try{
+  const q=query(collection(db,"users"),where("email","==",email),limit(5));
+  const snap=await getDocs(q);result.replaceChildren();
+  if(snap.empty){result.textContent="No user found.";return}
+  snap.forEach(d=>{
+   const u=d.data();
+   const row=document.createElement("div");row.className="comment";
+   const name=document.createElement("b");name.textContent=u.name||"Friend";
+   const btn=document.createElement("button");btn.className="smallbtn";btn.textContent="Message";
+   btn.onclick=()=>openChat(u.uid,u.name||"Friend");
+   row.append(name,document.createTextNode(" "),btn);result.appendChild(row);
+  });
+ }catch(e){result.textContent=e.message}
+};
+
+// DIRECT MESSAGES
+function chatId(a,b){return [a,b].sort().join("_")}
+
+async function openChat(uid,name){
+ if(uid===me.uid)return alert("You cannot message yourself.");
+ activeChat=chatId(me.uid,uid);
+ $("chatTitle").textContent=name;
+ $("chatPanel").classList.remove("hidden");
+ if(stopMessages)stopMessages();
+
+ const messages=collection(db,"chats",activeChat,"messages");
+ stopMessages=onSnapshot(query(messages,orderBy("createdAt","asc"),limit(100)),s=>{
+  const box=$("chatMessages");box.replaceChildren();
+  s.forEach(d=>{
+   const x=d.data();const el=document.createElement("div");
+   el.className="bubble"+(x.senderId===me.uid?" mine":"");
+   el.textContent=x.text||"";box.appendChild(el);
+  });
+  box.scrollTop=box.scrollHeight;
+ });
+}
+
+$("closeChat").onclick=()=>{
+ $("chatPanel").classList.add("hidden");
+ if(stopMessages)stopMessages();
+ stopMessages=null;activeChat=null;
+};
+
+$("chatForm").onsubmit=async e=>{
+ e.preventDefault();
+ if(!activeChat)return;
+ const text=$("chatInput").value.trim();if(!text)return;
+ try{
+  await addDoc(collection(db,"chats",activeChat,"messages"),{
+   senderId:me.uid,text,createdAt:serverTimestamp()
+  });
+  $("chatInput").value="";
+ }catch(e){alert(e.message)}
+};
+
+$("openChats").onclick=()=>alert("Find someone by email in the Find People section to start a chat.");
+</script>
+</body>
+</html>
