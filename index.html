@@ -1,0 +1,399 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FriendZone | Welcome</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: #080808;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  width: 100%;
+  max-width: 420px;
+  padding: 35px 28px;
+  border: 1px solid #a77b28;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #171717, #090909);
+  box-shadow: 0 0 20px rgba(218,165,32,.12),
+              0 0 45px rgba(218,165,32,.08);
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.logo h1 {
+  color: #e6bd62;
+  font-size: 34px;
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px rgba(230,189,98,.65);
+}
+
+.logo p {
+  color: #aaa;
+  margin-top: 9px;
+  font-size: 13px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #f1d18a;
+}
+
+.input-group {
+  margin-bottom: 17px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #d5b66c;
+  font-size: 13px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  background: #101010;
+  color: white;
+  border: 1px solid #45403a;
+  border-radius: 9px;
+  outline: none;
+  font-size: 14px;
+}
+
+input:focus {
+  border-color: #e6bd62;
+  box-shadow: 0 0 10px rgba(230,189,98,.2);
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.main-btn {
+  margin-top: 8px;
+  color: #17110a;
+  background: linear-gradient(90deg,#a87922,#f3d58c,#b48631);
+  box-shadow: 0 0 15px rgba(218,165,32,.25);
+}
+
+.main-btn:hover {
+  box-shadow: 0 0 22px rgba(218,165,32,.55);
+}
+
+.google-btn {
+  margin-top: 14px;
+  background: #202020;
+  color: white;
+  border: 1px solid #555;
+}
+
+.switch {
+  text-align: center;
+  color: #aaa;
+  margin-top: 22px;
+  font-size: 14px;
+}
+
+.switch span, .forgot {
+  color: #e6bd62;
+  cursor: pointer;
+}
+
+.forgot {
+  display: block;
+  text-align: right;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+#message {
+  text-align: center;
+  font-size: 13px;
+  margin-top: 15px;
+  color: #e6bd62;
+  overflow-wrap: anywhere;
+}
+
+.hidden {
+  display: none;
+}
+
+.footer {
+  text-align: center;
+  color: #666;
+  font-size: 11px;
+  margin-top: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="logo">
+    <h1>FRIENDZONE</h1>
+    <p>Connect. Share. Discover.</p>
+  </div>
+
+  <h2 id="heading">Welcome Back</h2>
+
+  <form id="authForm">
+
+    <div class="input-group hidden" id="nameGroup">
+      <label>Full Name</label>
+      <input type="text" id="name" placeholder="Enter your name">
+    </div>
+
+    <div class="input-group">
+      <label>Email Address</label>
+      <input type="email" id="email"
+        placeholder="Enter your email" required>
+    </div>
+
+    <div class="input-group">
+      <label>Password</label>
+      <input type="password" id="password"
+        placeholder="Enter password" minlength="6" required>
+    </div>
+
+    <span class="forgot" id="forgot">Forgot password?</span>
+
+    <button class="main-btn" type="submit" id="submitBtn">
+      Login
+    </button>
+
+  </form>
+
+  <button class="google-btn" id="googleBtn">
+    Continue with Google
+  </button>
+
+  <div class="switch">
+    <span id="switchText">Don't have an account?</span>
+    <span id="switchBtn"> Create Account</span>
+  </div>
+
+  <p id="message"></p>
+
+  <div class="footer">
+    © 2026 FriendZone. All rights reserved.
+  </div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  sendPasswordResetEmail,
+  updateProfile
+} from
+"https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDjAZ_4eHN21jtWyq3mYv43uhw7yaGIuA0",
+  authDomain: "class-f0376.firebaseapp.com",
+  projectId: "class-f0376",
+  storageBucket: "class-f0376.firebasestorage.app",
+  messagingSenderId: "861064597115",
+  appId: "1:861064597115:web:11eed88d44a05ea76c1cde",
+  measurementId: "G-S46KERZ8Q5"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+const provider = new GoogleAuthProvider();
+
+let isRegister = false;
+
+const form = document.getElementById("authForm");
+const message = document.getElementById("message");
+
+function showMessage(text) {
+  message.textContent = text;
+}
+
+function getError(error) {
+  const errors = {
+    "auth/email-already-in-use": "This email is already registered.",
+    "auth/invalid-email": "Please enter a valid email.",
+    "auth/weak-password": "Password must be at least 6 characters.",
+    "auth/invalid-credential": "Incorrect email or password.",
+    "auth/popup-closed-by-user": "Google login was cancelled.",
+    "auth/unauthorized-domain": "This website domain is not authorized in Firebase."
+  };
+
+  return errors[error.code] || error.message;
+}
+
+// Switch between Login and Registration
+
+document.getElementById("switchBtn").onclick = () => {
+
+  isRegister = !isRegister;
+
+  document.getElementById("heading").textContent =
+    isRegister ? "Create Account" : "Welcome Back";
+
+  document.getElementById("submitBtn").textContent =
+    isRegister ? "Register" : "Login";
+
+  document.getElementById("nameGroup").classList.toggle("hidden", !isRegister);
+
+  document.getElementById("forgot").classList.toggle("hidden", isRegister);
+
+  document.getElementById("switchText").textContent =
+    isRegister ? "Already have an account?" : "Don't have an account?";
+
+  document.getElementById("switchBtn").textContent =
+    isRegister ? " Login" : " Create Account";
+
+  document.getElementById("name").required = isRegister;
+
+  showMessage("");
+};
+
+// Email Login and Registration
+
+form.addEventListener("submit", async (e) => {
+
+  e.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const name = document.getElementById("name").value.trim();
+
+  const submitBtn = document.getElementById("submitBtn");
+
+  submitBtn.disabled = true;
+  showMessage("Please wait...");
+
+  try {
+
+    let result;
+
+    if (isRegister) {
+
+      if (!name) {
+        throw new Error("Please enter your name.");
+      }
+
+      result = await createUserWithEmailAndPassword(
+        auth, email, password
+      );
+
+      await updateProfile(result.user, {
+        displayName: name
+      });
+
+      showMessage("Account created successfully!");
+
+    } else {
+
+      result = await signInWithEmailAndPassword(
+        auth, email, password
+      );
+
+      showMessage("Login successful! Welcome to FriendZone.");
+
+    }
+
+    // We'll add the home page redirect after creating page 2.
+
+  } catch (error) {
+
+    showMessage(getError(error));
+
+  } finally {
+    submitBtn.disabled = false;
+  }
+
+});
+
+// Google Login
+
+document.getElementById("googleBtn").onclick = async () => {
+
+  try {
+
+    showMessage("Connecting to Google...");
+
+    await signInWithPopup(auth, provider);
+
+    showMessage("Google login successful!");
+
+    // Home page redirect will be added later.
+
+  } catch (error) {
+
+    showMessage(getError(error));
+
+  }
+
+};
+
+// Forgot Password
+
+document.getElementById("forgot").onclick = async () => {
+
+  const email = document.getElementById("email").value.trim();
+
+  if (!email) {
+    showMessage("Enter your email address first.");
+    return;
+  }
+
+  try {
+
+    await sendPasswordResetEmail(auth, email);
+
+    showMessage("Password reset email sent!");
+
+  } catch (error) {
+
+    showMessage(getError(error));
+
+  }
+
+};
+
+</script>
+
+</body>
+</html>
